@@ -1,0 +1,2632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuantForge | Quantitative Research Terminal</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+
+<style>
+:root {
+    --bg: #070a0f;
+    --panel: #0d1219;
+    --panel2: #101720;
+    --border: #1d2834;
+    --text: #e7edf4;
+    --muted: #7f8b98;
+    --blue: #3b82f6;
+    --blue2: #60a5fa;
+    --green: #22c55e;
+    --red: #ef4444;
+    --yellow: #f59e0b;
+    --sidebar: 235px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Inter, Segoe UI, Arial, sans-serif;
+    min-height: 100vh;
+}
+
+button,
+input,
+select {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+.app {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: var(--sidebar);
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    background: #090d13;
+    border-right: 1px solid var(--border);
+    padding: 24px 14px;
+    z-index: 20;
+}
+
+.logo {
+    padding: 0 12px 26px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+}
+
+.logo-title {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.8px;
+}
+
+.logo-sub {
+    color: var(--muted);
+    font-size: 10px;
+    letter-spacing: 1.7px;
+    margin-top: 5px;
+}
+
+.nav-title {
+    color: #53606d;
+    font-size: 9px;
+    letter-spacing: 1.6px;
+    padding: 0 12px 9px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #8d99a6;
+    padding: 11px 12px;
+    margin: 3px 0;
+    border-radius: 5px;
+    font-size: 13px;
+    transition: .15s;
+}
+
+.nav-item:hover {
+    background: #111923;
+    color: #dfe7ef;
+}
+
+.nav-item.active {
+    background: #12243d;
+    color: #6da8ff;
+    border-left: 2px solid var(--blue);
+}
+
+.nav-icon {
+    width: 18px;
+    text-align: center;
+    font-size: 13px;
+}
+
+.status {
+    position: absolute;
+    bottom: 20px;
+    left: 24px;
+    right: 24px;
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+    color: var(--muted);
+    font-size: 10px;
+}
+
+.status-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--green);
+    margin-right: 6px;
+}
+
+.main {
+    margin-left: var(--sidebar);
+    width: calc(100% - var(--sidebar));
+    padding: 24px 28px 40px;
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+}
+
+.kicker {
+    color: var(--blue2);
+    font-size: 10px;
+    letter-spacing: 2.2px;
+    font-weight: 700;
+}
+
+.title {
+    font-size: 25px;
+    font-weight: 700;
+    margin-top: 7px;
+}
+
+.subtitle {
+    color: var(--muted);
+    font-size: 11px;
+    margin-top: 5px;
+    letter-spacing: .4px;
+}
+
+.top-status {
+    display: flex;
+    gap: 18px;
+    align-items: center;
+    color: var(--muted);
+    font-size: 10px;
+}
+
+.page {
+    display: none;
+}
+
+.page.active {
+    display: block;
+}
+
+.kpis {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.kpi {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 14px;
+    min-height: 83px;
+}
+
+.kpi-label {
+    color: var(--muted);
+    font-size: 9px;
+    letter-spacing: 1.1px;
+    margin-bottom: 12px;
+}
+
+.kpi-value {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.negative {
+    color: var(--red);
+}
+
+.positive {
+    color: var(--green);
+}
+
+.grid-main {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 12px;
+}
+
+.grid-three {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 15px;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.panel-title {
+    font-size: 11px;
+    letter-spacing: 1.2px;
+    font-weight: 700;
+}
+
+.panel-meta {
+    color: var(--muted);
+    font-size: 9px;
+}
+
+.chart {
+    width: 100%;
+    height: 330px;
+}
+
+.chart-small {
+    height: 245px;
+}
+
+.metric-list {
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+}
+
+.metric-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+}
+
+.metric-name {
+    color: #9ca8b4;
+    font-size: 10px;
+}
+
+.metric-value {
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.metric-bar {
+    grid-column: 1 / 3;
+    height: 4px;
+    background: #18212b;
+    overflow: hidden;
+}
+
+.metric-fill {
+    height: 100%;
+    background: var(--blue);
+}
+
+.metric-fill.red {
+    background: var(--red);
+}
+
+.execution-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.execution-table td {
+    padding: 9px 0;
+    border-bottom: 1px solid #17212b;
+    font-size: 10px;
+}
+
+.execution-table td:first-child {
+    color: var(--muted);
+}
+
+.execution-table td:last-child {
+    text-align: right;
+    font-weight: 700;
+}
+
+.pipeline {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+}
+
+.pipeline-item {
+    min-height: 95px;
+    background: #0b1118;
+    border: 1px solid var(--border);
+    padding: 11px;
+}
+
+.pipeline-num {
+    color: var(--blue2);
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.pipeline-name {
+    font-size: 10px;
+    font-weight: 700;
+    margin-top: 10px;
+}
+
+.pipeline-desc {
+    color: var(--muted);
+    font-size: 8px;
+    line-height: 1.45;
+    margin-top: 5px;
+}
+
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.report-table th,
+.report-table td {
+    padding: 11px 12px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    font-size: 11px;
+}
+
+.report-table th {
+    color: var(--muted);
+    font-size: 9px;
+    letter-spacing: 1px;
+}
+
+.builder {
+    display: grid;
+    grid-template-columns: 1.15fr 1.85fr;
+    gap: 14px;
+}
+
+.builder-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 18px;
+}
+
+.section-label {
+    color: var(--blue2);
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.form-group {
+    margin-bottom: 13px;
+}
+
+.form-group.full {
+    grid-column: 1 / 3;
+}
+
+.form-label {
+    display: block;
+    color: #8794a1;
+    font-size: 9px;
+    letter-spacing: .8px;
+    margin-bottom: 6px;
+}
+
+.form-input,
+.form-select {
+    width: 100%;
+    background: #080d13;
+    color: var(--text);
+    border: 1px solid #263340;
+    border-radius: 3px;
+    padding: 10px;
+    outline: none;
+}
+
+.form-input:focus,
+.form-select:focus {
+    border-color: var(--blue);
+}
+
+.universe-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.universe-button {
+    background: #0a1017;
+    border: 1px solid #263340;
+    color: #9ba7b3;
+    padding: 12px 7px;
+    border-radius: 3px;
+    text-align: center;
+}
+
+.universe-button:hover {
+    border-color: #3d75b9;
+}
+
+.universe-button.active {
+    background: #102441;
+    border-color: var(--blue);
+    color: #7db3ff;
+}
+
+.universe-name {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.universe-count {
+    display: block;
+    color: var(--muted);
+    font-size: 9px;
+    margin-top: 4px;
+}
+
+.stock-toolbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.stock-search {
+    flex: 1;
+    background: #080d13;
+    color: white;
+    border: 1px solid #263340;
+    padding: 9px 10px;
+    outline: none;
+}
+
+.small-btn {
+    background: #111a24;
+    color: #aeb9c5;
+    border: 1px solid #293745;
+    padding: 8px 11px;
+    border-radius: 3px;
+    font-size: 9px;
+}
+
+.small-btn:hover {
+    border-color: var(--blue);
+    color: white;
+}
+
+.stock-list {
+    height: 420px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    background: #080d13;
+    padding: 7px;
+}
+
+.stock-row {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 7px 8px;
+    border-bottom: 1px solid #111923;
+    font-size: 10px;
+}
+
+.stock-row:hover {
+    background: #101821;
+}
+
+.stock-row input {
+    accent-color: var(--blue);
+}
+
+.stock-symbol {
+    font-weight: 600;
+}
+
+.stock-group {
+    color: var(--muted);
+    margin-left: auto;
+    font-size: 8px;
+}
+
+.selection-bar {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 9px;
+    color: var(--muted);
+    font-size: 9px;
+}
+
+.selection-count {
+    color: var(--blue2);
+    font-weight: 700;
+}
+
+.preview {
+    background: #080d13;
+    border: 1px solid var(--border);
+    padding: 15px;
+}
+
+.preview-title {
+    font-size: 10px;
+    letter-spacing: 1.2px;
+    font-weight: 700;
+    margin-bottom: 13px;
+}
+
+.preview-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.preview-card {
+    background: #0d141c;
+    border: 1px solid #1b2732;
+    padding: 12px;
+}
+
+.preview-label {
+    color: var(--muted);
+    font-size: 8px;
+    letter-spacing: 1px;
+}
+
+.preview-value {
+    font-size: 15px;
+    font-weight: 700;
+    margin-top: 7px;
+}
+
+.action-row {
+    display: flex;
+    gap: 9px;
+    margin-top: 15px;
+}
+
+.primary-btn {
+    background: var(--blue);
+    color: white;
+    border: 0;
+    padding: 11px 17px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.primary-btn:hover {
+    background: #2563eb;
+}
+
+.secondary-btn {
+    background: #111923;
+    color: #aab5c0;
+    border: 1px solid #2a3845;
+    padding: 11px 17px;
+    border-radius: 3px;
+    font-size: 10px;
+}
+
+.builder-note {
+    color: var(--muted);
+    font-size: 9px;
+    line-height: 1.6;
+    margin-top: 12px;
+}
+
+.badge {
+    display: inline-block;
+    padding: 4px 7px;
+    border: 1px solid #28415e;
+    color: #79adf5;
+    font-size: 8px;
+    border-radius: 2px;
+}
+
+@media(max-width: 1200px) {
+    .kpis {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .grid-main,
+    .grid-three,
+    .builder {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media(max-width: 800px) {
+    .sidebar {
+        width: 190px;
+    }
+
+    .main {
+        margin-left: 190px;
+        width: calc(100% - 190px);
+        padding: 15px;
+    }
+
+    .kpis {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .pipeline {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-group.full {
+        grid-column: auto;
+    }
+
+    .universe-buttons {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<aside class="sidebar">
+
+    <div class="logo">
+        <div class="logo-title">QuantForge</div>
+        <div class="logo-sub">QUANTITATIVE RESEARCH ENGINE</div>
+    </div>
+
+    <div class="nav-title">TERMINAL</div>
+
+    <div class="nav-item active" data-page="dashboard">
+        <span class="nav-icon">◈</span>
+        <span>Dashboard</span>
+    </div>
+
+    <div class="nav-item" data-page="portfolio">
+        <span class="nav-icon">◎</span>
+        <span>Portfolio Builder</span>
+    </div>
+
+    <div class="nav-item" data-page="performance">
+        <span class="nav-icon">◒</span>
+        <span>Performance</span>
+    </div>
+
+    <div class="nav-item" data-page="risk">
+        <span class="nav-icon">◇</span>
+        <span>Risk Analysis</span>
+    </div>
+
+    <div class="nav-item" data-page="monthly">
+        <span class="nav-icon">▥</span>
+        <span>Monthly Returns</span>
+    </div>
+
+    <div class="nav-item" data-page="execution">
+        <span class="nav-icon">⌁</span>
+        <span>Execution</span>
+    </div>
+
+    <div class="nav-item" data-page="pipeline">
+        <span class="nav-icon">◫</span>
+        <span>Research Pipeline</span>
+    </div>
+
+    <div class="nav-item" data-page="report">
+        <span class="nav-icon">▤</span>
+        <span>Report</span>
+    </div>
+
+    <div class="status">
+        <span class="status-dot"></span>
+        LOCAL RESEARCH MODE
+        <div style="margin-top:7px;">QuantForge v1.0</div>
+    </div>
+
+</aside>
+
+<main class="main">
+
+<header class="topbar">
+
+    <div>
+        <div class="kicker">QUANTITATIVE RESEARCH TERMINAL</div>
+        <div class="title">Autonomous Market Intelligence & Trading Research Engine</div>
+        <div class="subtitle">
+            ML Alpha • Regime Detection • Portfolio Construction • Risk • C++ Backtesting
+        </div>
+    </div>
+
+    <div class="top-status">
+        <span>DATA ENGINE</span>
+        <span style="color:#22c55e;">● ONLINE</span>
+        <span>v1.0</span>
+    </div>
+
+</header>
+
+<section id="dashboard" class="page active">
+
+<div class="kpis">
+
+    <div class="kpi">
+        <div class="kpi-label">INITIAL CAPITAL</div>
+        <div class="kpi-value">₹10,00,000</div>
+    </div>
+
+    <div class="kpi">
+        <div class="kpi-label">FINAL EQUITY</div>
+        <div class="kpi-value negative">₹9,25,487</div>
+        <div class="negative" style="font-size:9px;margin-top:5px;">-7.45%</div>
+    </div>
+
+    <div class="kpi">
+        <div class="kpi-label">CAGR</div>
+        <div class="kpi-value negative">-9.12%</div>
+    </div>
+
+    <div class="kpi">
+        <div class="kpi-label">ANNUALIZED VOLATILITY</div>
+        <div class="kpi-value">11.11%</div>
+    </div>
+
+    <div class="kpi">
+        <div class="kpi-label">SHARPE RATIO</div>
+        <div class="kpi-value negative">-0.81</div>
+    </div>
+
+    <div class="kpi">
+        <div class="kpi-label">MAX DRAWDOWN</div>
+        <div class="kpi-value negative">-14.63%</div>
+    </div>
+
+    <div class="kpi">
+        <div class="kpi-label">PROFIT FACTOR</div>
+        <div class="kpi-value">0.88</div>
+    </div>
+
+</div>
+
+<div class="grid-main">
+
+    <div class="panel">
+
+        <div class="panel-header">
+            <div class="panel-title">PORTFOLIO EQUITY CURVE</div>
+            <div class="panel-meta">C++ RISK-AWARE BACKTEST</div>
+        </div>
+
+        <div id="equityChart" class="chart"></div>
+
+    </div>
+
+    <div class="panel">
+
+        <div class="panel-header">
+            <div class="panel-title">MONTHLY RETURNS</div>
+            <div class="panel-meta">2026</div>
+        </div>
+
+        <div id="monthlyChart" class="chart"></div>
+
+    </div>
+
+</div>
+
+<div class="grid-three">
+
+    <div class="panel">
+
+        <div class="panel-header">
+            <div class="panel-title">RETURN DISTRIBUTION</div>
+            <div class="panel-meta">DAILY RETURNS</div>
+        </div>
+
+        <div id="distributionChart" class="chart-small"></div>
+
+    </div>
+
+    <div class="panel">
+
+        <div class="panel-header">
+            <div class="panel-title">RISK METRICS</div>
+        </div>
+
+        <div class="metric-list">
+
+            <div class="metric-row">
+                <div class="metric-name">Annualized Volatility</div>
+                <div class="metric-value">11.11%</div>
+                <div class="metric-bar">
+                    <div class="metric-fill" style="width:55%"></div>
+                </div>
+            </div>
+
+            <div class="metric-row">
+                <div class="metric-name">Sharpe Ratio</div>
+                <div class="metric-value negative">-0.81</div>
+                <div class="metric-bar">
+                    <div class="metric-fill red" style="width:72%"></div>
+                </div>
+            </div>
+
+            <div class="metric-row">
+                <div class="metric-name">Sortino Ratio</div>
+                <div class="metric-value negative">-1.25</div>
+                <div class="metric-bar">
+                    <div class="metric-fill red" style="width:82%"></div>
+                </div>
+            </div>
+
+            <div class="metric-row">
+                <div class="metric-name">Maximum Drawdown</div>
+                <div class="metric-value negative">-14.63%</div>
+                <div class="metric-bar">
+                    <div class="metric-fill red" style="width:73%"></div>
+                </div>
+            </div>
+
+            <div class="metric-row">
+                <div class="metric-name">Calmar Ratio</div>
+                <div class="metric-value negative">-0.62</div>
+                <div class="metric-bar">
+                    <div class="metric-fill red" style="width:60%"></div>
+                </div>
+            </div>
+
+            <div class="metric-row">
+                <div class="metric-name">Profit Factor</div>
+                <div class="metric-value">0.88</div>
+                <div class="metric-bar">
+                    <div class="metric-fill" style="width:44%"></div>
+                </div>
+            </div>
+
+            <div class="metric-row">
+                <div class="metric-name">Win Rate</div>
+                <div class="metric-value">44.12%</div>
+                <div class="metric-bar">
+                    <div class="metric-fill" style="width:44%"></div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="panel">
+
+        <div class="panel-header">
+            <div class="panel-title">EXECUTION PROFILE</div>
+        </div>
+
+        <table class="execution-table">
+            <tr><td>Win Rate</td><td>44.12%</td></tr>
+            <tr><td>Total Turnover</td><td>3079.90%</td></tr>
+            <tr><td>Transaction Costs</td><td>1.54%</td></tr>
+            <tr><td>Slippage Costs</td><td>1.54%</td></tr>
+            <tr><td>Trading Sessions</td><td>204</td></tr>
+            <tr><td>Initial Capital</td><td>₹10,00,000</td></tr>
+            <tr><td>Final Equity</td><td>₹9,25,487</td></tr>
+        </table>
+
+    </div>
+
+</div>
+
+<div class="panel" style="margin-top:12px;">
+
+    <div class="panel-header">
+        <div class="panel-title">QUANTFORGE RESEARCH PIPELINE</div>
+        <div class="badge">12-STAGE ENGINE</div>
+    </div>
+
+    <div class="pipeline">
+
+        <div class="pipeline-item">
+            <div class="pipeline-num">01</div>
+            <div class="pipeline-name">Market Data</div>
+            <div class="pipeline-desc">Historical & live market data</div>
+        </div>
+
+        <div class="pipeline-item">
+            <div class="pipeline-num">02</div>
+            <div class="pipeline-name">Feature Engineering</div>
+            <div class="pipeline-desc">Technical & cross-sectional features</div>
+        </div>
+
+        <div class="pipeline-item">
+            <div class="pipeline-num">03</div>
+            <div class="pipeline-name">Regime Detection</div>
+            <div class="pipeline-desc">Market & stock regimes</div>
+        </div>
+
+        <div class="pipeline-item">
+            <div class="pipeline-num">04</div>
+            <div class="pipeline-name">Alpha Modeling</div>
+            <div class="pipeline-desc">ML alpha generation</div>
+        </div>
+
+        <div class="pipeline-item">
+            <div class="pipeline-num">05</div>
+            <div class="pipeline-name">Portfolio & Risk</div>
+            <div class="pipeline-desc">Allocation & risk controls</div>
+        </div>
+
+        <div class="pipeline-item">
+            <div class="pipeline-num">06</div>
+            <div class="pipeline-name">C++ Backtesting</div>
+            <div class="pipeline-desc">High-performance simulation</div>
+        </div>
+
+        <div class="pipeline-item">
+            <div class="pipeline-num">07</div>
+            <div class="pipeline-name">Monte Carlo</div>
+            <div class="pipeline-desc">Strategy robustness</div>
+        </div>
+
+        <div class="pipeline-item">
+            <div class="pipeline-num">08</div>
+            <div class="pipeline-name">Walk-Forward</div>
+            <div class="pipeline-desc">Out-of-sample validation</div>
+        </div>
+
+        <div class="pipeline-item">
+            <div class="pipeline-num">09</div>
+            <div class="pipeline-name">Execution</div>
+            <div class="pipeline-desc">Slippage & transaction costs</div>
+        </div>
+
+        <div class="pipeline-item">
+            <div class="pipeline-num">10</div>
+            <div class="pipeline-name">Performance</div>
+            <div class="pipeline-desc">Risk-adjusted analytics</div>
+        </div>
+
+        <div class="pipeline-item">
+            <div class="pipeline-num">11</div>
+            <div class="pipeline-name">Monitoring</div>
+            <div class="pipeline-desc">Live tracking & alerts</div>
+        </div>
+
+        <div class="pipeline-item">
+            <div class="pipeline-num">12</div>
+            <div class="pipeline-name">Dashboard</div>
+            <div class="pipeline-desc">Research visualization</div>
+        </div>
+
+    </div>
+
+</div>
+
+</section>
+
+<section id="portfolio" class="page">
+
+<div class="builder">
+
+<div class="builder-panel">
+
+<div class="section-label">PORTFOLIO CONFIGURATION</div>
+
+<div class="form-grid">
+
+<div class="form-group full">
+<label class="form-label">PORTFOLIO NAME</label>
+<input id="portfolioName" class="form-input" value="My QuantForge Portfolio">
+</div>
+
+<div class="form-group">
+<label class="form-label">INITIAL CAPITAL</label>
+<input id="initialCapital" class="form-input" type="number" value="1000000">
+</div>
+
+<div class="form-group">
+<label class="form-label">MAX POSITIONS</label>
+<input id="maxPositions" class="form-input" type="number" value="10" min="1">
+</div>
+
+<div class="form-group">
+<label class="form-label">STRATEGY</label>
+<select id="strategy" class="form-select">
+<option value="quantforge_alpha">QuantForge Alpha</option>
+<option value="momentum_alpha">Momentum Alpha</option>
+<option value="risk_adjusted_alpha">Risk Adjusted Alpha</option>
+</select>
+</div>
+
+<div class="form-group">
+<label class="form-label">RISK PROFILE</label>
+<select id="riskProfile" class="form-select">
+<option value="conservative">Conservative</option>
+<option value="balanced" selected>Balanced</option>
+<option value="aggressive">Aggressive</option>
+</select>
+</div>
+
+<div class="form-group">
+<label class="form-label">MAX POSITION WEIGHT</label>
+<input id="maxWeight" class="form-input" type="number" value="35" min="1" max="100">
+</div>
+
+<div class="form-group">
+<label class="form-label">MIN POSITION WEIGHT</label>
+<input id="minWeight" class="form-input" type="number" value="5" min="1" max="100">
+</div>
+
+</div>
+
+<div class="section-label" style="margin-top:8px;">UNIVERSE PRESETS</div>
+
+<div class="universe-buttons">
+
+<button class="universe-button active" data-universe="NIFTY_50">
+<span class="universe-name">NIFTY 50</span>
+<span class="universe-count">50 stocks</span>
+</button>
+
+<button class="universe-button" data-universe="NIFTY_100">
+<span class="universe-name">NIFTY 100</span>
+<span class="universe-count">100 stocks</span>
+</button>
+
+<button class="universe-button" data-universe="NIFTY_150">
+<span class="universe-name">NIFTY 150</span>
+<span class="universe-count">150 stocks</span>
+</button>
+
+<button class="universe-button" id="customUniverseButton" onclick="setCustomUniverse()">
+<span class="universe-name">CUSTOM</span>
+<span class="universe-count">Manual Selection</span>
+</button>
+
+</div>
+
+<div class="preview">
+
+<div class="preview-title">LIVE PORTFOLIO PREVIEW</div>
+
+<div class="preview-grid">
+
+<div class="preview-card">
+<div class="preview-label">UNIVERSE</div>
+<div id="previewUniverse" class="preview-value">NIFTY 50</div>
+</div>
+
+<div class="preview-card">
+<div class="preview-label">SELECTED STOCKS</div>
+<div id="previewCount" class="preview-value">50</div>
+</div>
+
+<div class="preview-card">
+<div class="preview-label">CAPITAL</div>
+<div id="previewCapital" class="preview-value">₹10,00,000</div>
+</div>
+
+<div class="preview-card">
+<div class="preview-label">MAX POSITIONS</div>
+<div id="previewPositions" class="preview-value">10</div>
+</div>
+
+<div class="preview-card">
+<div class="preview-label">STRATEGY</div>
+<div id="previewStrategy" class="preview-value" style="font-size:11px;">
+QuantForge Alpha
+</div>
+</div>
+
+<div class="preview-card">
+<div class="preview-label">RISK PROFILE</div>
+<div id="previewRisk" class="preview-value" style="font-size:11px;">
+Balanced
+</div>
+</div>
+
+</div>
+
+</div>
+
+<div class="action-row">
+
+<button class="primary-btn" onclick="createPortfolio()">
+CREATE PORTFOLIO
+</button>
+
+<button class="secondary-btn" onclick="resetBuilder()">
+RESET
+</button>
+
+</div>
+
+<div id="portfolioStatus" class="builder-note">
+Portfolio configuration is local and will be sent to the QuantForge backend when the local research server is running.
+</div>
+
+</div>
+
+<div class="builder-panel">
+
+<div class="section-label">UNIVERSE CONSTRUCTION</div>
+
+<div class="builder-note" style="margin-top:0;margin-bottom:12px;">
+Choose a preset universe or use CUSTOM to build your own combination of stocks.
+</div>
+
+<div class="stock-toolbar">
+
+<input
+id="stockSearch"
+class="stock-search"
+placeholder="Search symbol..."
+oninput="renderStocks()">
+
+<button class="small-btn" onclick="selectVisible()">
+SELECT VISIBLE
+</button>
+
+<button class="small-btn" onclick="clearAll()">
+CLEAR ALL
+</button>
+
+</div>
+
+<div id="stockList" class="stock-list"></div>
+
+<div class="selection-bar">
+
+<span>
+Selected universe:
+<span id="selectedCount" class="selection-count">50</span>
+</span>
+
+<span>
+Custom combination supported
+</span>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+<section id="performance" class="page">
+
+<div class="panel">
+
+<div class="panel-header">
+<div class="panel-title">PERFORMANCE ANALYTICS</div>
+<div class="panel-meta">C++ BACKTEST OUTPUT</div>
+</div>
+
+<div id="performanceEquity" class="chart" style="height:520px;"></div>
+
+</div>
+
+</section>
+
+<section id="risk" class="page">
+
+<div class="grid-main">
+
+<div class="panel">
+
+<div class="panel-header">
+<div class="panel-title">DRAWDOWN PROFILE</div>
+</div>
+
+<div id="drawdownChart" class="chart"></div>
+
+</div>
+
+<div class="panel">
+
+<div class="panel-header">
+<div class="panel-title">RISK SUMMARY</div>
+</div>
+
+<table class="execution-table">
+<tr><td>Volatility</td><td>11.11%</td></tr>
+<tr><td>Sharpe</td><td class="negative">-0.81</td></tr>
+<tr><td>Sortino</td><td class="negative">-1.25</td></tr>
+<tr><td>Maximum Drawdown</td><td class="negative">-14.63%</td></tr>
+<tr><td>Calmar</td><td class="negative">-0.62</td></tr>
+<tr><td>Profit Factor</td><td>0.88</td></tr>
+<tr><td>Win Rate</td><td>44.12%</td></tr>
+</table>
+
+</div>
+
+</div>
+
+</section>
+
+<section id="monthly" class="page">
+
+<div class="panel">
+
+<div class="panel-header">
+<div class="panel-title">MONTHLY PERFORMANCE</div>
+<div class="panel-meta">PORTFOLIO RETURNS</div>
+</div>
+
+<div id="monthlyLarge" class="chart" style="height:520px;"></div>
+
+</div>
+
+</section>
+
+<section id="execution" class="page">
+
+<div class="grid-main">
+
+<div class="panel">
+
+<div class="panel-header">
+<div class="panel-title">EXECUTION PROFILE</div>
+</div>
+
+<div id="turnoverChart" class="chart"></div>
+
+</div>
+
+<div class="panel">
+
+<div class="panel-header">
+<div class="panel-title">EXECUTION METRICS</div>
+</div>
+
+<table class="execution-table">
+<tr><td>Total Turnover</td><td>3079.90%</td></tr>
+<tr><td>Transaction Cost</td><td>1.54%</td></tr>
+<tr><td>Slippage</td><td>1.54%</td></tr>
+<tr><td>Trading Sessions</td><td>204</td></tr>
+<tr><td>Position Rows</td><td>612</td></tr>
+</table>
+
+</div>
+
+</div>
+
+</section>
+
+<section id="pipeline" class="page">
+
+<div class="panel">
+
+<div class="panel-header">
+<div class="panel-title">QUANTFORGE RESEARCH PIPELINE</div>
+<div class="badge">AUTONOMOUS RESEARCH STACK</div>
+</div>
+
+<div class="pipeline" style="grid-template-columns:repeat(4,1fr);">
+
+<div class="pipeline-item">
+<div class="pipeline-num">01</div>
+<div class="pipeline-name">Market Data</div>
+<div class="pipeline-desc">Historical and live market ingestion.</div>
+</div>
+
+<div class="pipeline-item">
+<div class="pipeline-num">02</div>
+<div class="pipeline-name">Feature Engineering</div>
+<div class="pipeline-desc">Returns, volatility, momentum, trend and volume factors.</div>
+</div>
+
+<div class="pipeline-item">
+<div class="pipeline-num">03</div>
+<div class="pipeline-name">Regime Detection</div>
+<div class="pipeline-desc">Stock and market regime classification.</div>
+</div>
+
+<div class="pipeline-item">
+<div class="pipeline-num">04</div>
+<div class="pipeline-name">Alpha Modeling</div>
+<div class="pipeline-desc">Cross-sectional machine learning alpha.</div>
+</div>
+
+<div class="pipeline-item">
+<div class="pipeline-num">05</div>
+<div class="pipeline-name">Signal Ensemble</div>
+<div class="pipeline-desc">ML, momentum, trend and volatility signals.</div>
+</div>
+
+<div class="pipeline-item">
+<div class="pipeline-num">06</div>
+<div class="pipeline-name">Portfolio Construction</div>
+<div class="pipeline-desc">Risk-aware position allocation.</div>
+</div>
+
+<div class="pipeline-item">
+<div class="pipeline-num">07</div>
+<div class="pipeline-name">Risk Engine</div>
+<div class="pipeline-desc">VaR, CVaR, drawdown and stress analysis.</div>
+</div>
+
+<div class="pipeline-item">
+<div class="pipeline-num">08</div>
+<div class="pipeline-name">C++ Backtester</div>
+<div class="pipeline-desc">High-performance execution simulation.</div>
+</div>
+
+<div class="pipeline-item">
+<div class="pipeline-num">09</div>
+<div class="pipeline-name">Monte Carlo</div>
+<div class="pipeline-desc">Distribution-based robustness testing.</div>
+</div>
+
+<div class="pipeline-item">
+<div class="pipeline-num">10</div>
+<div class="pipeline-name">Walk Forward</div>
+<div class="pipeline-desc">Rolling out-of-sample validation.</div>
+</div>
+
+<div class="pipeline-item">
+<div class="pipeline-num">11</div>
+<div class="pipeline-name">Monitoring</div>
+<div class="pipeline-desc">Live strategy monitoring and alerts.</div>
+</div>
+
+<div class="pipeline-item">
+<div class="pipeline-num">12</div>
+<div class="pipeline-name">Research Dashboard</div>
+<div class="pipeline-desc">Integrated quantitative terminal.</div>
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+<section id="report" class="page">
+
+<div class="panel">
+
+<div class="panel-header">
+<div class="panel-title">PERFORMANCE REPORT</div>
+<div class="badge">RESEARCH OUTPUT</div>
+</div>
+
+<table class="report-table">
+
+<thead>
+<tr>
+<th>METRIC</th>
+<th>VALUE</th>
+</tr>
+</thead>
+
+<tbody>
+<tr><td>Initial Capital</td><td>₹10,00,000</td></tr>
+<tr><td>Final Equity</td><td>₹9,25,486.74</td></tr>
+<tr><td>Total Return</td><td class="negative">-7.45%</td></tr>
+<tr><td>CAGR</td><td class="negative">-9.12%</td></tr>
+<tr><td>Annualized Volatility</td><td>11.11%</td></tr>
+<tr><td>Sharpe Ratio</td><td class="negative">-0.81</td></tr>
+<tr><td>Sortino Ratio</td><td class="negative">-1.25</td></tr>
+<tr><td>Maximum Drawdown</td><td class="negative">-14.63%</td></tr>
+<tr><td>Calmar Ratio</td><td class="negative">-0.62</td></tr>
+<tr><td>Profit Factor</td><td>0.88</td></tr>
+<tr><td>Win Rate</td><td>44.12%</td></tr>
+<tr><td>Trading Sessions</td><td>204</td></tr>
+<tr><td>Total Turnover</td><td>3079.90%</td></tr>
+</tbody>
+
+</table>
+
+</div>
+
+</section>
+
+</main>
+</div>
+
+<script>
+
+const NIFTY_50 = [
+"ADANIENT.NS",
+"ADANIPORTS.NS",
+"APOLLOHOSP.NS",
+"ASIANPAINT.NS",
+"AXISBANK.NS",
+"BAJAJ-AUTO.NS",
+"BAJFINANCE.NS",
+"BAJAJFINSV.NS",
+"BEL.NS",
+"BHARTIARTL.NS",
+"CIPLA.NS",
+"COALINDIA.NS",
+"EICHERMOT.NS",
+"ETERNAL.NS",
+"GRASIM.NS",
+"HCLTECH.NS",
+"HDFCBANK.NS",
+"HDFCLIFE.NS",
+"HEROMOTOCO.NS",
+"HINDALCO.NS",
+"HINDUNILVR.NS",
+"ICICIBANK.NS",
+"INDUSINDBK.NS",
+"INFY.NS",
+"ITC.NS",
+"JIOFIN.NS",
+"JSWSTEEL.NS",
+"KOTAKBANK.NS",
+"LT.NS",
+"M&M.NS",
+"MARUTI.NS",
+"MAXHEALTH.NS",
+"NESTLEIND.NS",
+"NTPC.NS",
+"ONGC.NS",
+"POWERGRID.NS",
+"RELIANCE.NS",
+"SBILIFE.NS",
+"SBIN.NS",
+"SHRIRAMFIN.NS",
+"SUNPHARMA.NS",
+"TATACONSUM.NS",
+"TATAMOTORS.NS",
+"TATASTEEL.NS",
+"TCS.NS",
+"TECHM.NS",
+"TITAN.NS",
+"TRENT.NS",
+"ULTRACEMCO.NS",
+"WIPRO.NS"
+];
+
+const NIFTY_NEXT_50 = [
+"ABB.NS",
+"ACC.NS",
+"ADANIGREEN.NS",
+"ADANIPOWER.NS",
+"AMBUJACEM.NS",
+"BANKBARODA.NS",
+"BANKINDIA.NS",
+"BOSCHLTD.NS",
+"CANBK.NS",
+"CHOLAFIN.NS",
+"COLPAL.NS",
+"DABUR.NS",
+"DIVISLAB.NS",
+"DLF.NS",
+"DMART.NS",
+"GAIL.NS",
+"GODREJCP.NS",
+"GODREJPROP.NS",
+"HAL.NS",
+"HAVELLS.NS",
+"ICICIGI.NS",
+"ICICIPRULI.NS",
+"IDFCFIRSTB.NS",
+"INDHOTEL.NS",
+"INDIGO.NS",
+"IOC.NS",
+"IRCTC.NS",
+"JINDALSTEL.NS",
+"JSWENERGY.NS",
+"LICI.NS",
+"LODHA.NS",
+"LUPIN.NS",
+"MARICO.NS",
+"MOTHERSON.NS",
+"MPHASIS.NS",
+"MUTHOOTFIN.NS",
+"NAUKRI.NS",
+"NHPC.NS",
+"OFSS.NS",
+"PAYTM.NS",
+"PERSISTENT.NS",
+"PIDILITIND.NS",
+"PFC.NS",
+"PNB.NS",
+"POLYCAB.NS",
+"RECLTD.NS",
+"SIEMENS.NS",
+"SRF.NS",
+"TORNTPHARM.NS",
+"TVSMOTOR.NS"
+];
+
+const EXTENDED_50 = [
+"AARTIIND.NS",
+"ABCAPITAL.NS",
+"ABFRL.NS",
+"ALKEM.NS",
+"AUROPHARMA.NS",
+"BALKRISIND.NS",
+"BANDHANBNK.NS",
+"BHARATFORG.NS",
+"BIOCON.NS",
+"BHEL.NS",
+"BLUESTARCO.NS",
+"BRITANNIA.NS",
+"CGPOWER.NS",
+"CUMMINSIND.NS",
+"DALBHARAT.NS",
+"DEEPAKNTR.NS",
+"ESCORTS.NS",
+"EXIDEIND.NS",
+"FEDERALBNK.NS",
+"FORTIS.NS",
+"GLENMARK.NS",
+"GUJGASLTD.NS",
+"HINDPETRO.NS",
+"IDBI.NS",
+"INDUSTOWER.NS",
+"JUBLFOOD.NS",
+"KEI.NS",
+"KAYNES.NS",
+"LICHSGFIN.NS",
+"MANAPPURAM.NS",
+"MFSL.NS",
+"MANKIND.NS",
+"MINDTREE.NS",
+"NATIONALUM.NS",
+"NMDC.NS",
+"OIL.NS",
+"PAGEIND.NS",
+"PEL.NS",
+"PETRONET.NS",
+"PIIND.NS",
+"PRESTIGE.NS",
+"SAIL.NS",
+"SCHAEFFLER.NS",
+"SOLARINDS.NS",
+"SUPREMEIND.NS",
+"TATAELXSI.NS",
+"THERMAX.NS",
+"TORNTPOWER.NS",
+"UNOMINDA.NS",
+"VBL.NS",
+"VOLTAS.NS"
+];
+
+const universes = {
+    NIFTY_50: [...NIFTY_50],
+    NIFTY_100: [...NIFTY_50, ...NIFTY_NEXT_50],
+    NIFTY_150: [...NIFTY_50, ...NIFTY_NEXT_50, ...EXTENDED_50]
+};
+
+let selectedStocks = new Set(NIFTY_50);
+
+let currentUniverse = "NIFTY_50";
+
+function formatINR(value) {
+
+    return new Intl.NumberFormat("en-IN", {
+        style: "currency",
+        currency: "INR",
+        maximumFractionDigits: 0
+    }).format(Number(value) || 0);
+
+}
+
+function prettySymbol(symbol) {
+
+    return symbol.replace(".NS", "");
+
+}
+
+function getGroup(symbol) {
+
+    if (NIFTY_50.includes(symbol)) {
+        return "NIFTY 50";
+    }
+
+    if (NIFTY_NEXT_50.includes(symbol)) {
+        return "NEXT 50";
+    }
+
+    return "EXTENDED";
+
+}
+
+function getAllStocks() {
+
+    return [
+        ...new Set([
+            ...NIFTY_50,
+            ...NIFTY_NEXT_50,
+            ...EXTENDED_50
+        ])
+    ];
+
+}
+
+function renderStocks() {
+
+    const list = document.getElementById("stockList");
+
+    const query =
+        document
+        .getElementById("stockSearch")
+        .value
+        .trim()
+        .toUpperCase();
+
+    const allStocks = getAllStocks();
+
+    const filtered = allStocks.filter(symbol =>
+        symbol.toUpperCase().includes(query)
+    );
+
+    list.innerHTML = filtered.map(symbol => `
+
+        <label class="stock-row">
+
+            <input
+                type="checkbox"
+                value="${symbol}"
+                ${selectedStocks.has(symbol) ? "checked" : ""}
+                onchange="toggleStock('${symbol}')">
+
+            <span class="stock-symbol">
+                ${prettySymbol(symbol)}
+            </span>
+
+            <span class="stock-group">
+                ${getGroup(symbol)}
+            </span>
+
+        </label>
+
+    `).join("");
+
+    updatePreview();
+
+}
+
+function toggleStock(symbol) {
+
+    if (selectedStocks.has(symbol)) {
+
+        selectedStocks.delete(symbol);
+
+    } else {
+
+        selectedStocks.add(symbol);
+
+    }
+
+    currentUniverse = "CUSTOM";
+
+    document
+        .querySelectorAll(".universe-button")
+        .forEach(button => {
+            button.classList.remove("active");
+        });
+
+    document
+        .getElementById("customUniverseButton")
+        .classList.add("active");
+
+    updatePreview();
+
+}
+
+function setUniverse(name) {
+
+    currentUniverse = name;
+
+    selectedStocks =
+        new Set(universes[name]);
+
+    document
+        .querySelectorAll(".universe-button")
+        .forEach(button => {
+            button.classList.toggle(
+                "active",
+                button.dataset.universe === name
+            );
+        });
+
+    renderStocks();
+
+}
+
+function setCustomUniverse() {
+
+    currentUniverse = "CUSTOM";
+
+    selectedStocks.clear();
+
+    document
+        .querySelectorAll(".universe-button")
+        .forEach(button => {
+            button.classList.remove("active");
+        });
+
+    document
+        .getElementById("customUniverseButton")
+        .classList.add("active");
+
+    document
+        .getElementById("stockSearch")
+        .value = "";
+
+    renderStocks();
+
+}
+
+function selectVisible() {
+
+    const query =
+        document
+        .getElementById("stockSearch")
+        .value
+        .trim()
+        .toUpperCase();
+
+    const visibleStocks =
+        getAllStocks()
+        .filter(symbol =>
+            symbol.toUpperCase().includes(query)
+        );
+
+    visibleStocks.forEach(symbol =>
+        selectedStocks.add(symbol)
+    );
+
+    currentUniverse = "CUSTOM";
+
+    document
+        .querySelectorAll(".universe-button")
+        .forEach(button => {
+            button.classList.remove("active");
+        });
+
+    document
+        .getElementById("customUniverseButton")
+        .classList.add("active");
+
+    renderStocks();
+
+}
+
+function clearAll() {
+
+    currentUniverse = "CUSTOM";
+
+    selectedStocks.clear();
+
+    document
+        .querySelectorAll(".universe-button")
+        .forEach(button => {
+            button.classList.remove("active");
+        });
+
+    document
+        .getElementById("customUniverseButton")
+        .classList.add("active");
+
+    renderStocks();
+
+}
+
+document
+    .querySelectorAll(".universe-button[data-universe]")
+    .forEach(button => {
+
+        button.addEventListener("click", () => {
+            setUniverse(
+                button.dataset.universe
+            );
+        });
+
+    });
+
+function updatePreview() {
+
+    const count =
+        selectedStocks.size;
+
+    const capital =
+        Number(
+            document
+            .getElementById("initialCapital")
+            .value
+        ) || 0;
+
+    const positions =
+        Number(
+            document
+            .getElementById("maxPositions")
+            .value
+        ) || 0;
+
+    const strategy =
+        document
+        .getElementById("strategy")
+        .value;
+
+    const risk =
+        document
+        .getElementById("riskProfile")
+        .value;
+
+    const universeLabel =
+        currentUniverse === "CUSTOM"
+        ? "CUSTOM"
+        : currentUniverse.replace(
+            "_",
+            " "
+        );
+
+    document
+        .getElementById("selectedCount")
+        .textContent = count;
+
+    document
+        .getElementById("previewCount")
+        .textContent = count;
+
+    document
+        .getElementById("previewUniverse")
+        .textContent = universeLabel;
+
+    document
+        .getElementById("previewCapital")
+        .textContent = formatINR(capital);
+
+    document
+        .getElementById("previewPositions")
+        .textContent = positions;
+
+    document
+        .getElementById("previewStrategy")
+        .textContent =
+        strategy
+        .replaceAll("_", " ")
+        .replace(
+            /\b\w/g,
+            c => c.toUpperCase()
+        );
+
+    document
+        .getElementById("previewRisk")
+        .textContent =
+        risk.charAt(0).toUpperCase() +
+        risk.slice(1);
+
+}
+
+[
+    "portfolioName",
+    "initialCapital",
+    "maxPositions",
+    "strategy",
+    "riskProfile",
+    "maxWeight",
+    "minWeight"
+].forEach(id => {
+
+    document
+        .getElementById(id)
+        .addEventListener(
+            "input",
+            updatePreview
+        );
+
+    document
+        .getElementById(id)
+        .addEventListener(
+            "change",
+            updatePreview
+        );
+
+});
+
+function resetBuilder() {
+
+    document
+        .getElementById("portfolioName")
+        .value =
+        "My QuantForge Portfolio";
+
+    document
+        .getElementById("initialCapital")
+        .value = 1000000;
+
+    document
+        .getElementById("maxPositions")
+        .value = 10;
+
+    document
+        .getElementById("strategy")
+        .value =
+        "quantforge_alpha";
+
+    document
+        .getElementById("riskProfile")
+        .value =
+        "balanced";
+
+    document
+        .getElementById("maxWeight")
+        .value = 35;
+
+    document
+        .getElementById("minWeight")
+        .value = 5;
+
+    document
+        .getElementById("stockSearch")
+        .value = "";
+
+    setUniverse("NIFTY_50");
+
+    document
+        .getElementById("portfolioStatus")
+        .textContent =
+        "Portfolio configuration reset.";
+
+}
+
+async function createPortfolio() {
+
+    const status =
+        document
+        .getElementById("portfolioStatus");
+
+    if (selectedStocks.size === 0) {
+
+        status.textContent =
+            "Select at least one stock before creating the portfolio.";
+
+        status.style.color =
+            "#ef4444";
+
+        return;
+
+    }
+
+    const minWeight =
+        Number(
+            document
+            .getElementById("minWeight")
+            .value
+        ) / 100;
+
+    const maxWeight =
+        Number(
+            document
+            .getElementById("maxWeight")
+            .value
+        ) / 100;
+
+    if (minWeight > maxWeight) {
+
+        status.textContent =
+            "Minimum position weight cannot exceed maximum position weight.";
+
+        status.style.color =
+            "#ef4444";
+
+        return;
+
+    }
+
+    const payload = {
+
+        portfolio_name:
+            document
+            .getElementById("portfolioName")
+            .value,
+
+        initial_capital:
+            Number(
+                document
+                .getElementById("initialCapital")
+                .value
+            ),
+
+        universe_type:
+            currentUniverse,
+
+        custom_universe:
+            [...selectedStocks],
+
+        strategy:
+            document
+            .getElementById("strategy")
+            .value,
+
+        risk_profile:
+            document
+            .getElementById("riskProfile")
+            .value,
+
+        max_position_weight:
+            maxWeight,
+
+        min_position_weight:
+            minWeight,
+
+        max_positions:
+            Number(
+                document
+                .getElementById("maxPositions")
+                .value
+            ),
+
+        transaction_cost:
+            0.0005,
+
+        slippage:
+            0.0005
+
+    };
+
+    status.style.color =
+        "#7f8b98";
+
+    status.textContent =
+        "Sending portfolio configuration to QuantForge backend...";
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/portfolio",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+                    body:
+                        JSON.stringify(
+                            payload
+                        )
+                }
+            );
+
+        const result =
+            await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                result.message ||
+                "Portfolio creation failed"
+            );
+        }
+
+        status.style.color =
+            "#22c55e";
+
+        status.textContent =
+            `Portfolio created successfully. ${selectedStocks.size} stocks configured.`;
+
+    } catch (error) {
+
+        status.style.color =
+            "#ef4444";
+
+        status.textContent =
+            "Backend is not connected yet. Start server.py when the local server is running.";
+
+    }
+
+}
+
+document
+    .querySelectorAll(".nav-item")
+    .forEach(item => {
+
+        item.addEventListener(
+            "click",
+            () => {
+
+                const page =
+                    item.dataset.page;
+
+                document
+                    .querySelectorAll(".nav-item")
+                    .forEach(nav => {
+                        nav.classList.remove(
+                            "active"
+                        );
+                    });
+
+                item.classList.add(
+                    "active"
+                );
+
+                document
+                    .querySelectorAll(".page")
+                    .forEach(section => {
+                        section.classList.remove(
+                            "active"
+                        );
+                    });
+
+                document
+                    .getElementById(page)
+                    .classList.add(
+                        "active"
+                    );
+
+                if (page === "performance") {
+                    renderPerformanceChart();
+                }
+
+                if (page === "risk") {
+                    renderDrawdownChart();
+                }
+
+                if (page === "monthly") {
+                    renderMonthlyLarge();
+                }
+
+                if (page === "execution") {
+                    renderTurnoverChart();
+                }
+
+            }
+        );
+
+    });
+
+const plotLayout = {
+
+    paper_bgcolor:
+        "transparent",
+
+    plot_bgcolor:
+        "transparent",
+
+    font: {
+        color: "#84909d",
+        size: 9
+    },
+
+    margin: {
+        l: 45,
+        r: 15,
+        t: 10,
+        b: 35
+    },
+
+    xaxis: {
+        gridcolor: "#17212b",
+        zerolinecolor: "#26313d"
+    },
+
+    yaxis: {
+        gridcolor: "#17212b",
+        zerolinecolor: "#26313d"
+    },
+
+    showlegend: false
+
+};
+
+const plotConfig = {
+    responsive: true,
+    displayModeBar: false
+};
+
+async function loadCsv(path) {
+
+    const response =
+        await fetch(path);
+
+    const text =
+        await response.text();
+
+    const lines =
+        text
+        .trim()
+        .split(/\r?\n/);
+
+    if (lines.length < 2) {
+        return [];
+    }
+
+    const headers =
+        lines[0]
+        .split(",")
+        .map(x => x.trim());
+
+    return lines
+        .slice(1)
+        .map(line => {
+
+            const values =
+                line.split(",");
+
+            const row = {};
+
+            headers.forEach(
+                (header, index) => {
+                    row[header] =
+                        values[index];
+                }
+            );
+
+            return row;
+
+        });
+
+}
+
+async function renderEquityChart() {
+
+    try {
+
+        const data =
+            await loadCsv(
+                "/data/processed/cpp_equity_curve.csv"
+            );
+
+        Plotly.newPlot(
+            "equityChart",
+            [{
+                x: data.map(
+                    row => row.Date
+                ),
+                y: data.map(
+                    row =>
+                        Number(
+                            row.Equity
+                        )
+                ),
+                type: "scatter",
+                mode: "lines",
+                line: {
+                    color: "#3b82f6",
+                    width: 2
+                }
+            }],
+            {
+                ...plotLayout,
+                yaxis: {
+                    ...plotLayout.yaxis,
+                    tickprefix: "₹"
+                }
+            },
+            plotConfig
+        );
+
+    } catch {
+
+        document
+            .getElementById(
+                "equityChart"
+            )
+            .innerHTML =
+            "<div style='padding:40px;color:#65717e;font-size:11px;'>Equity data unavailable</div>";
+
+    }
+
+}
+
+async function renderMonthlyChart() {
+
+    try {
+
+        const data =
+            await loadCsv(
+                "/data/processed/monthly_returns.csv"
+            );
+
+        const values =
+            data.map(
+                row =>
+                    Number(
+                        row.Return
+                    )
+            );
+
+        Plotly.newPlot(
+            "monthlyChart",
+            [{
+                x: data.map(
+                    row => row.Month
+                ),
+                y: values,
+                type: "bar",
+                marker: {
+                    color:
+                        values.map(
+                            value =>
+                                value >= 0
+                                ? "#22c55e"
+                                : "#ef4444"
+                        )
+                }
+            }],
+            {
+                ...plotLayout,
+                yaxis: {
+                    ...plotLayout.yaxis,
+                    tickformat: ".1%"
+                }
+            },
+            plotConfig
+        );
+
+    } catch {
+
+        document
+            .getElementById(
+                "monthlyChart"
+            )
+            .innerHTML =
+            "<div style='padding:40px;color:#65717e;font-size:11px;'>Monthly data unavailable</div>";
+
+    }
+
+}
+
+async function renderDistribution() {
+
+    try {
+
+        const data =
+            await loadCsv(
+                "/data/processed/cpp_equity_curve.csv"
+            );
+
+        const returns =
+            data
+            .map(
+                row =>
+                    Number(
+                        row.Net_Return
+                    )
+            )
+            .filter(
+                x =>
+                    Number.isFinite(x)
+            );
+
+        Plotly.newPlot(
+            "distributionChart",
+            [{
+                x: returns,
+                type: "histogram",
+                nbinsx: 30,
+                marker: {
+                    color: "#3b82f6"
+                }
+            }],
+            {
+                ...plotLayout,
+                xaxis: {
+                    ...plotLayout.xaxis,
+                    tickformat: ".1%"
+                }
+            },
+            plotConfig
+        );
+
+    } catch {
+
+        document
+            .getElementById(
+                "distributionChart"
+            )
+            .innerHTML =
+            "<div style='padding:40px;color:#65717e;font-size:11px;'>Return data unavailable</div>";
+
+    }
+
+}
+
+async function renderPerformanceChart() {
+
+    try {
+
+        const data =
+            await loadCsv(
+                "/data/processed/cpp_equity_curve.csv"
+            );
+
+        Plotly.newPlot(
+            "performanceEquity",
+            [{
+                x: data.map(
+                    row => row.Date
+                ),
+                y: data.map(
+                    row =>
+                        Number(
+                            row.Equity
+                        )
+                ),
+                type: "scatter",
+                mode: "lines",
+                line: {
+                    color: "#3b82f6",
+                    width: 2
+                }
+            }],
+            {
+                ...plotLayout,
+                margin: {
+                    l: 60,
+                    r: 20,
+                    t: 20,
+                    b: 50
+                },
+                yaxis: {
+                    ...plotLayout.yaxis,
+                    tickprefix: "₹"
+                }
+            },
+            plotConfig
+        );
+
+    } catch {}
+
+}
+
+async function renderDrawdownChart() {
+
+    try {
+
+        const data =
+            await loadCsv(
+                "/data/processed/cpp_equity_curve.csv"
+            );
+
+        Plotly.newPlot(
+            "drawdownChart",
+            [{
+                x: data.map(
+                    row => row.Date
+                ),
+                y: data.map(
+                    row =>
+                        Number(
+                            row.Drawdown
+                        )
+                ),
+                type: "scatter",
+                mode: "lines",
+                fill: "tozeroy",
+                line: {
+                    color: "#ef4444",
+                    width: 1.5
+                }
+            }],
+            {
+                ...plotLayout,
+                yaxis: {
+                    ...plotLayout.yaxis,
+                    tickformat: ".1%"
+                }
+            },
+            plotConfig
+        );
+
+    } catch {}
+
+}
+
+async function renderMonthlyLarge() {
+
+    try {
+
+        const data =
+            await loadCsv(
+                "/data/processed/monthly_returns.csv"
+            );
+
+        const values =
+            data.map(
+                row =>
+                    Number(
+                        row.Return
+                    )
+            );
+
+        Plotly.newPlot(
+            "monthlyLarge",
+            [{
+                x: data.map(
+                    row => row.Month
+                ),
+                y: values,
+                type: "bar",
+                marker: {
+                    color:
+                        values.map(
+                            value =>
+                                value >= 0
+                                ? "#22c55e"
+                                : "#ef4444"
+                        )
+                }
+            }],
+            {
+                ...plotLayout,
+                margin: {
+                    l: 60,
+                    r: 20,
+                    t: 20,
+                    b: 50
+                },
+                yaxis: {
+                    ...plotLayout.yaxis,
+                    tickformat: ".1%"
+                }
+            },
+            plotConfig
+        );
+
+    } catch {}
+
+}
+
+async function renderTurnoverChart() {
+
+    try {
+
+        const data =
+            await loadCsv(
+                "/data/processed/cpp_equity_curve.csv"
+            );
+
+        Plotly.newPlot(
+            "turnoverChart",
+            [{
+                x: data.map(
+                    row => row.Date
+                ),
+                y: data.map(
+                    row =>
+                        Number(
+                            row.Turnover
+                        )
+                ),
+                type: "scatter",
+                mode: "lines",
+                line: {
+                    color: "#60a5fa",
+                    width: 1.5
+                }
+            }],
+            {
+                ...plotLayout,
+                yaxis: {
+                    ...plotLayout.yaxis,
+                    tickformat: ".0%"
+                }
+            },
+            plotConfig
+        );
+
+    } catch {}
+
+}
+
+renderEquityChart();
+renderMonthlyChart();
+renderDistribution();
+renderStocks();
+updatePreview();
+
+</script>
+
+</body>
+</html>
