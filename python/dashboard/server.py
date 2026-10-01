@@ -1,4 +1,5 @@
 import json
+import os
 import sys
 from pathlib import Path
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -308,7 +309,7 @@ class QuantForgeHandler(SimpleHTTPRequestHandler):
 def main():
 
     server = ThreadingHTTPServer(
-        ("127.0.0.1", 8000),
+        ("0.0.0.0", int(os.environ.get("PORT", 8000))),
         QuantForgeHandler
     )
 
