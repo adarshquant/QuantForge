@@ -4,14 +4,13 @@ import sys
 from pathlib import Path
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
-
 BASE_DIR = Path(__file__).resolve().parents[2]
 
 if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
 
 from python.data.universe_engine import UniverseEngine
-
+from python.dashboard.runtime_backtest import run_portfolio_backtest
 
 CONFIG_PATH = BASE_DIR / "config" / "portfolio_config.json"
 
@@ -29,64 +28,73 @@ class QuantForgeHandler(SimpleHTTPRequestHandler):
         payload = json.dumps(data).encode("utf-8")
 
         self.send_response(status_code)
+
         self.send_header(
             "Content-Type",
             "application/json"
         )
+
         self.send_header(
             "Content-Length",
             str(len(payload))
         )
+
         self.send_header(
             "Access-Control-Allow-Origin",
             "*"
         )
+
         self.send_header(
             "Access-Control-Allow-Methods",
             "GET, POST, OPTIONS"
         )
+
         self.send_header(
             "Access-Control-Allow-Headers",
             "Content-Type"
         )
+
         self.end_headers()
 
         self.wfile.write(payload)
 
     def do_OPTIONS(self):
         self.send_response(200)
+
         self.send_header(
             "Access-Control-Allow-Origin",
             "*"
         )
+
         self.send_header(
             "Access-Control-Allow-Methods",
             "GET, POST, OPTIONS"
         )
+
         self.send_header(
             "Access-Control-Allow-Headers",
             "Content-Type"
         )
+
         self.end_headers()
 
     def do_GET(self):
 
         if self.path == "/":
             self.send_response(302)
+
             self.send_header(
                 "Location",
                 "/python/dashboard/"
             )
+
             self.end_headers()
+
             return
 
         if self.path == "/api/dashboard":
-
             try:
-
-                from python.dashboard.data_api import (
-                    get_dashboard_data
-                )
+                from python.dashboard.data_api import get_dashboard_data
 
                 self.send_json(
                     200,
@@ -96,7 +104,6 @@ class QuantForgeHandler(SimpleHTTPRequestHandler):
                 return
 
             except Exception as error:
-
                 self.send_json(
                     500,
                     {
@@ -119,6 +126,7 @@ class QuantForgeHandler(SimpleHTTPRequestHandler):
                     "message": "API endpoint not found"
                 }
             )
+
             return
 
         try:
@@ -152,20 +160,31 @@ class QuantForgeHandler(SimpleHTTPRequestHandler):
                     indent=2
                 )
 
-            self.send_json(
-                200,
-                {
-                    "status": "success",
-                    "message": "Portfolio configuration saved successfully",
-                    "portfolio": portfolio
-                }
-            )
-
             print(
                 f"PORTFOLIO SAVED | "
                 f"{portfolio['portfolio_name']} | "
                 f"{portfolio['universe_type']} | "
                 f"{len(portfolio['custom_universe'])} stocks"
+            )
+
+            print(
+                "RUNNING DYNAMIC PORTFOLIO BACKTEST..."
+            )
+
+            backtest = run_portfolio_backtest()
+
+            print(
+                "DYNAMIC PORTFOLIO BACKTEST COMPLETED"
+            )
+
+            self.send_json(
+                200,
+                {
+                    "status": "success",
+                    "message": "Portfolio configuration saved and backtest completed successfully",
+                    "portfolio": portfolio,
+                    "backtest": backtest
+                }
             )
 
         except Exception as error:
@@ -317,28 +336,43 @@ class QuantForgeHandler(SimpleHTTPRequestHandler):
 def main():
 
     server = ThreadingHTTPServer(
-        ("0.0.0.0", int(os.environ.get("PORT", 8000))),
+        (
+            "0.0.0.0",
+            int(
+                os.environ.get(
+                    "PORT",
+                    8000
+                )
+            )
+        ),
         QuantForgeHandler
     )
 
     print("=" * 70)
     print("QUANTFORGE LOCAL RESEARCH SERVER")
     print("=" * 70)
+
     print(
         "Dashboard: "
         "http://127.0.0.1:8000/python/dashboard/"
     )
+
     print(
-        "API:       "
+        "API: "
         "http://127.0.0.1:8000/api/portfolio"
     )
+
     print("=" * 70)
 
     try:
+
         server.serve_forever()
+
     except KeyboardInterrupt:
+
         print()
         print("QUANTFORGE SERVER STOPPED")
+
         server.server_close()
 
 

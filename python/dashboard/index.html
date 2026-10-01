@@ -1980,11 +1980,469 @@ function resetBuilder() {
 
 }
 
+function formatPercent(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) {
+        return "—";
+    }
+    return (number * 100).toFixed(2) + "%";
+}
+
+function formatRatio(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) {
+        return "—";
+    }
+    return number.toFixed(2);
+}
+
+function getMetric(metrics, ...names) {
+    for (const name of names) {
+        if (
+            Object.prototype.hasOwnProperty.call(metrics, name) &&
+            Number.isFinite(metrics[name])
+        ) {
+            return metrics[name];
+        }
+    }
+    return NaN;
+}
+
+function applyMetricClass(element, value) {
+    element.classList.remove("positive", "negative");
+    if (Number.isFinite(value) && value < 0) {
+        element.classList.add("negative");
+    } else if (Number.isFinite(value) && value > 0) {
+        element.classList.add("positive");
+    }
+}
+
+function updateMetricRowByLabel(selector, label, value, formatter) {
+    const rows = document.querySelectorAll(selector + " tr");
+    rows.forEach(row => {
+        const cells = row.querySelectorAll("td");
+        if (cells.length < 2) {
+            return;
+        }
+
+        if (
+            cells[0].textContent.trim().toLowerCase() ===
+            label.toLowerCase()
+        ) {
+            cells[1].textContent = formatter(value);
+            applyMetricClass(cells[1], value);
+        }
+    });
+}
+
+async function refreshPerformanceData() {
+
+    const timestamp = Date.now();
+
+    const performance =
+        await loadCsv(
+            "/data/processed/performance_report.csv?t=" +
+            timestamp
+        );
+
+    const metrics = {};
+
+    performance.forEach(row => {
+        const key = String(row.Metric || "").trim();
+        const value = Number(row.Value);
+
+        if (key) {
+            metrics[key] = value;
+        }
+    });
+
+    const initialCapital =
+        getMetric(metrics, "Initial Capital");
+
+    const finalCapital =
+        getMetric(metrics, "Final Capital", "Final Equity");
+
+    const totalReturn =
+        getMetric(metrics, "Total Return");
+
+    const cagr =
+        getMetric(metrics, "CAGR");
+
+    const volatility =
+        getMetric(metrics, "Annualized Volatility");
+
+    const sharpe =
+        getMetric(metrics, "Sharpe Ratio");
+
+    const sortino =
+        getMetric(metrics, "Sortino Ratio");
+
+    const maxDrawdown =
+        getMetric(metrics, "Maximum Drawdown");
+
+    const calmar =
+        getMetric(metrics, "Calmar Ratio");
+
+    const profitFactor =
+        getMetric(metrics, "Profit Factor");
+
+    const winRate =
+        getMetric(metrics, "Win Rate");
+
+    const turnover =
+        getMetric(metrics, "Total Turnover");
+
+    const transactionCosts =
+        getMetric(
+            metrics,
+            "Transaction Costs",
+            "Transaction Cost"
+        );
+
+    const slippage =
+        getMetric(
+            metrics,
+            "Slippage",
+            "Slippage Costs"
+        );
+
+    const sessions =
+        getMetric(metrics, "Trading Sessions");
+
+    const kpiValues =
+        document.querySelectorAll(
+            "#dashboard .kpi-value"
+        );
+
+    if (kpiValues.length >= 7) {
+
+        kpiValues[0].textContent =
+            formatINR(initialCapital);
+
+        kpiValues[1].textContent =
+            formatINR(finalCapital);
+
+        kpiValues[2].textContent =
+            formatPercent(cagr);
+
+        kpiValues[3].textContent =
+            formatPercent(volatility);
+
+        kpiValues[4].textContent =
+            formatRatio(sharpe);
+
+        kpiValues[5].textContent =
+            formatPercent(maxDrawdown);
+
+        kpiValues[6].textContent =
+            formatRatio(profitFactor);
+
+        applyMetricClass(
+            kpiValues[1],
+            totalReturn
+        );
+
+        applyMetricClass(
+            kpiValues[2],
+            cagr
+        );
+
+        applyMetricClass(
+            kpiValues[4],
+            sharpe
+        );
+
+        applyMetricClass(
+            kpiValues[5],
+            maxDrawdown
+        );
+    }
+
+    const returnElement =
+        document.querySelector(
+            "#dashboard .kpi:nth-child(2) > div:nth-child(3)"
+        );
+
+    if (returnElement) {
+        returnElement.textContent =
+            formatPercent(totalReturn);
+
+        applyMetricClass(
+            returnElement,
+            totalReturn
+        );
+
+        returnElement.style.fontSize = "9px";
+        returnElement.style.marginTop = "5px";
+    }
+
+    const riskValues =
+        document.querySelectorAll(
+            "#dashboard .metric-value"
+        );
+
+    const riskData = [
+        [volatility, true],
+        [sharpe, false],
+        [sortino, false],
+        [maxDrawdown, true],
+        [calmar, false],
+        [profitFactor, false],
+        [winRate, true]
+    ];
+
+    riskValues.forEach((element, index) => {
+
+        if (index >= riskData.length) {
+            return;
+        }
+
+        const [value, isPercent] =
+            riskData[index];
+
+        element.textContent =
+            isPercent
+            ? formatPercent(value)
+            : formatRatio(value);
+
+        applyMetricClass(
+            element,
+            value
+        );
+    });
+
+    updateMetricRowByLabel(
+        "#dashboard .execution-table",
+        "Win Rate",
+        winRate,
+        formatPercent
+    );
+
+    updateMetricRowByLabel(
+        "#dashboard .execution-table",
+        "Total Turnover",
+        turnover,
+        formatPercent
+    );
+
+    updateMetricRowByLabel(
+        "#dashboard .execution-table",
+        "Transaction Costs",
+        transactionCosts,
+        formatPercent
+    );
+
+    updateMetricRowByLabel(
+        "#dashboard .execution-table",
+        "Slippage Costs",
+        slippage,
+        formatPercent
+    );
+
+    updateMetricRowByLabel(
+        "#dashboard .execution-table",
+        "Trading Sessions",
+        sessions,
+        value =>
+            Number.isFinite(Number(value))
+            ? String(Math.round(Number(value)))
+            : "—"
+    );
+
+    updateMetricRowByLabel(
+        "#dashboard .execution-table",
+        "Initial Capital",
+        initialCapital,
+        formatINR
+    );
+
+    updateMetricRowByLabel(
+        "#dashboard .execution-table",
+        "Final Equity",
+        finalCapital,
+        formatINR
+    );
+
+    updateMetricRowByLabel(
+        "#risk .execution-table",
+        "Volatility",
+        volatility,
+        formatPercent
+    );
+
+    updateMetricRowByLabel(
+        "#risk .execution-table",
+        "Sharpe",
+        sharpe,
+        formatRatio
+    );
+
+    updateMetricRowByLabel(
+        "#risk .execution-table",
+        "Sortino",
+        sortino,
+        formatRatio
+    );
+
+    updateMetricRowByLabel(
+        "#risk .execution-table",
+        "Maximum Drawdown",
+        maxDrawdown,
+        formatPercent
+    );
+
+    updateMetricRowByLabel(
+        "#risk .execution-table",
+        "Calmar",
+        calmar,
+        formatRatio
+    );
+
+    updateMetricRowByLabel(
+        "#risk .execution-table",
+        "Profit Factor",
+        profitFactor,
+        formatRatio
+    );
+
+    updateMetricRowByLabel(
+        "#risk .execution-table",
+        "Win Rate",
+        winRate,
+        formatPercent
+    );
+
+    updateMetricRowByLabel(
+        "#execution .execution-table",
+        "Total Turnover",
+        turnover,
+        formatPercent
+    );
+
+    updateMetricRowByLabel(
+        "#execution .execution-table",
+        "Transaction Cost",
+        transactionCosts,
+        formatPercent
+    );
+
+    updateMetricRowByLabel(
+        "#execution .execution-table",
+        "Slippage",
+        slippage,
+        formatPercent
+    );
+
+    updateMetricRowByLabel(
+        "#execution .execution-table",
+        "Trading Sessions",
+        sessions,
+        value =>
+            Number.isFinite(Number(value))
+            ? String(Math.round(Number(value)))
+            : "—"
+    );
+
+    const reportRows =
+        document.querySelectorAll(
+            "#report .report-table tbody tr"
+        );
+
+    const reportValues = {
+        "Initial Capital": [
+            initialCapital,
+            formatINR
+        ],
+        "Final Equity": [
+            finalCapital,
+            formatINR
+        ],
+        "Total Return": [
+            totalReturn,
+            formatPercent
+        ],
+        "CAGR": [
+            cagr,
+            formatPercent
+        ],
+        "Annualized Volatility": [
+            volatility,
+            formatPercent
+        ],
+        "Sharpe Ratio": [
+            sharpe,
+            formatRatio
+        ],
+        "Sortino Ratio": [
+            sortino,
+            formatRatio
+        ],
+        "Maximum Drawdown": [
+            maxDrawdown,
+            formatPercent
+        ],
+        "Calmar Ratio": [
+            calmar,
+            formatRatio
+        ],
+        "Profit Factor": [
+            profitFactor,
+            formatRatio
+        ],
+        "Win Rate": [
+            winRate,
+            formatPercent
+        ],
+        "Trading Sessions": [
+            sessions,
+            value =>
+                Number.isFinite(Number(value))
+                ? String(Math.round(Number(value)))
+                : "—"
+        ],
+        "Total Turnover": [
+            turnover,
+            formatPercent
+        ]
+    };
+
+    reportRows.forEach(row => {
+
+        const cells =
+            row.querySelectorAll("td");
+
+        if (cells.length < 2) {
+            return;
+        }
+
+        const label =
+            cells[0].textContent.trim();
+
+        if (!reportValues[label]) {
+            return;
+        }
+
+        const [value, formatter] =
+            reportValues[label];
+
+        cells[1].textContent =
+            formatter(value);
+
+        applyMetricClass(
+            cells[1],
+            value
+        );
+    });
+
+    return metrics;
+}
+
 async function createPortfolio() {
 
     const status =
-        document
-        .getElementById("portfolioStatus");
+        document.getElementById(
+            "portfolioStatus"
+        );
 
     if (selectedStocks.size === 0) {
 
@@ -1995,21 +2453,20 @@ async function createPortfolio() {
             "#ef4444";
 
         return;
-
     }
 
     const minWeight =
         Number(
-            document
-            .getElementById("minWeight")
-            .value
+            document.getElementById(
+                "minWeight"
+            ).value
         ) / 100;
 
     const maxWeight =
         Number(
-            document
-            .getElementById("maxWeight")
-            .value
+            document.getElementById(
+                "maxWeight"
+            ).value
         ) / 100;
 
     if (minWeight > maxWeight) {
@@ -2021,21 +2478,20 @@ async function createPortfolio() {
             "#ef4444";
 
         return;
-
     }
 
     const payload = {
 
         portfolio_name:
-            document
-            .getElementById("portfolioName")
-            .value,
+            document.getElementById(
+                "portfolioName"
+            ).value,
 
         initial_capital:
             Number(
-                document
-                .getElementById("initialCapital")
-                .value
+                document.getElementById(
+                    "initialCapital"
+                ).value
             ),
 
         universe_type:
@@ -2045,14 +2501,14 @@ async function createPortfolio() {
             [...selectedStocks],
 
         strategy:
-            document
-            .getElementById("strategy")
-            .value,
+            document.getElementById(
+                "strategy"
+            ).value,
 
         risk_profile:
-            document
-            .getElementById("riskProfile")
-            .value,
+            document.getElementById(
+                "riskProfile"
+            ).value,
 
         max_position_weight:
             maxWeight,
@@ -2062,9 +2518,9 @@ async function createPortfolio() {
 
         max_positions:
             Number(
-                document
-                .getElementById("maxPositions")
-                .value
+                document.getElementById(
+                    "maxPositions"
+                ).value
             ),
 
         transaction_cost:
@@ -2072,14 +2528,13 @@ async function createPortfolio() {
 
         slippage:
             0.0005
-
     };
 
     status.style.color =
-        "#7f8b98";
+        "#f59e0b";
 
     status.textContent =
-        "Sending portfolio configuration to QuantForge backend...";
+        "Running portfolio backtest...";
 
     try {
 
@@ -2088,14 +2543,13 @@ async function createPortfolio() {
                 "/api/portfolio",
                 {
                     method: "POST",
+                    cache: "no-store",
                     headers: {
                         "Content-Type":
                             "application/json"
                     },
                     body:
-                        JSON.stringify(
-                            payload
-                        )
+                        JSON.stringify(payload)
                 }
             );
 
@@ -2109,22 +2563,53 @@ async function createPortfolio() {
             );
         }
 
+        status.textContent =
+            "Backtest completed. Refreshing dashboard...";
+
+        await new Promise(
+            resolve =>
+                setTimeout(resolve, 150)
+        );
+
+        await refreshPerformanceData();
+
+        await renderEquityChart();
+        await renderMonthlyChart();
+        await renderDistribution();
+        await renderPerformanceChart();
+        await renderDrawdownChart();
+        await renderMonthlyLarge();
+        await renderTurnoverChart();
+
+        const dashboardNav =
+            document.querySelector(
+                '.nav-item[data-page="dashboard"]'
+            );
+
+        if (dashboardNav) {
+            dashboardNav.click();
+        }
+
         status.style.color =
             "#22c55e";
 
         status.textContent =
-            `Portfolio created successfully. ${selectedStocks.size} stocks configured.`;
+            `Portfolio created and backtest completed. ${selectedStocks.size} stocks configured.`;
 
     } catch (error) {
+
+        console.error(
+            "QuantForge portfolio error:",
+            error
+        );
 
         status.style.color =
             "#ef4444";
 
         status.textContent =
-            "Backend is not connected yet. Start server.py when the local server is running.";
-
+            "Portfolio/backtest failed: " +
+            error.message;
     }
-
 }
 
 document
@@ -2227,7 +2712,18 @@ const plotConfig = {
 async function loadCsv(path) {
 
     const response =
-        await fetch(path);
+        await fetch(
+            path,
+            {
+                cache: "no-store"
+            }
+        );
+
+    if (!response.ok) {
+        throw new Error(
+            `HTTP ${response.status} while loading ${path}`
+        );
+    }
 
     const text =
         await response.text();
@@ -2274,7 +2770,7 @@ async function renderEquityChart() {
 
         const data =
             await loadCsv(
-                "/data/processed/cpp_equity_curve.csv"
+                "/data/processed/cpp_equity_curve.csv?t=" + Date.now()
             );
 
         Plotly.newPlot(
@@ -2325,7 +2821,7 @@ async function renderMonthlyChart() {
 
         const data =
             await loadCsv(
-                "/data/processed/monthly_returns.csv"
+                "/data/processed/monthly_returns.csv?t=" + Date.now()
             );
 
         const values =
@@ -2383,7 +2879,7 @@ async function renderDistribution() {
 
         const data =
             await loadCsv(
-                "/data/processed/cpp_equity_curve.csv"
+                "/data/processed/cpp_equity_curve.csv?t=" + Date.now()
             );
 
         const returns =
@@ -2438,7 +2934,7 @@ async function renderPerformanceChart() {
 
         const data =
             await loadCsv(
-                "/data/processed/cpp_equity_curve.csv"
+                "/data/processed/cpp_equity_curve.csv?t=" + Date.now()
             );
 
         Plotly.newPlot(
@@ -2486,7 +2982,7 @@ async function renderDrawdownChart() {
 
         const data =
             await loadCsv(
-                "/data/processed/cpp_equity_curve.csv"
+                "/data/processed/cpp_equity_curve.csv?t=" + Date.now()
             );
 
         Plotly.newPlot(
@@ -2529,7 +3025,7 @@ async function renderMonthlyLarge() {
 
         const data =
             await loadCsv(
-                "/data/processed/monthly_returns.csv"
+                "/data/processed/monthly_returns.csv?t=" + Date.now()
             );
 
         const values =
@@ -2584,7 +3080,7 @@ async function renderTurnoverChart() {
 
         const data =
             await loadCsv(
-                "/data/processed/cpp_equity_curve.csv"
+                "/data/processed/cpp_equity_curve.csv?t=" + Date.now()
             );
 
         Plotly.newPlot(
@@ -2620,8 +3116,18 @@ async function renderTurnoverChart() {
 
 }
 
+refreshPerformanceData()
+    .catch(error =>
+        console.error(
+            "Initial performance refresh failed:",
+            error
+        )
+    );
+
 renderEquityChart();
 renderMonthlyChart();
+renderMonthlyLarge();
+renderTurnoverChart();
 renderDistribution();
 renderStocks();
 updatePreview();
