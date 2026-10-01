@@ -2,6 +2,10 @@
 
 ## Autonomous Quantitative Market Intelligence & Trading Research Engine
 
+## 🚀 Live Demo
+
+[**Launch QuantForge Dashboard →**](https://quantforge-kktj.onrender.com/)
+
 QuantForge is a quantitative research and portfolio intelligence platform that combines machine learning, technical alpha, market regime detection, portfolio construction, risk management, Monte Carlo simulation, walk-forward validation, and high-performance C++ backtesting into a unified research pipeline.
 
 The system uses a dynamic investment universe, allowing research to be performed across NIFTY 50, NIFTY 100, NIFTY 150, or a custom stock universe.
