@@ -71,6 +71,15 @@ class QuantForgeHandler(SimpleHTTPRequestHandler):
 
     def do_GET(self):
 
+        if self.path == "/":
+            self.send_response(302)
+            self.send_header(
+                "Location",
+                "/python/dashboard/"
+            )
+            self.end_headers()
+            return
+
         if self.path == "/api/dashboard":
 
             try:
@@ -99,7 +108,6 @@ class QuantForgeHandler(SimpleHTTPRequestHandler):
                 return
 
         super().do_GET()
-
 
     def do_POST(self):
 
